@@ -1,6 +1,6 @@
 # BensVoice
 
-A tiny macOS menu bar app for talking to your computer, with two hotkeys:
+A tiny macOS menu bar app (and [iPhone keyboard](#iphone)) for talking to your computer, with two hotkeys:
 
 - **Dictate**: speech to text in whatever field is focused, transcribed **locally** with NVIDIA's Parakeet model on the Apple Neural Engine.
 - **Compose**: say what you want written ("reply saying Thursday works but Friday's out"), and Claude Haiku writes it and pastes it in. It's a lightweight take on apps like Lemon Voice, using your Claude Code subscription.
@@ -114,6 +114,29 @@ To change the hotkeys, edit `AppDelegate.keys` in `Sources/BensVoice/main.swift`
 - `Recorder.swift`: AVAudioEngine to 16 kHz mono. The engine only runs while recording.
 - `Composer.swift`: the Haiku prompt, through either the `claude` CLI or the Messages API.
 - `TextInsertion.swift`: pastes through a temporary clipboard swap, then restores your clipboard. Also reads selected text via Accessibility.
+
+## iPhone
+
+`iOS/` is an iPhone version that works as a **keyboard**, like Wispr Flow. It uses the same Parakeet decoder and Haiku prompt as the Mac app (the Swift files are shared).
+
+<p align="center"><img src="iOS/BensVoice/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="96" alt="BensVoice icon"></p>
+
+- Tap 🌐 to switch to the BensVoice keyboard. It has two buttons: 🎙 **Dictate** and ✎ **Compose**.
+- Tap one, talk, and tap it again. Parakeet transcribes on the phone (and Haiku writes it, for Compose), and the text is typed straight into the field.
+- In Compose, Haiku also sees the text before the cursor, or your selection, so "reply saying Thursday works" or "make this more formal" work.
+
+**Why it opens the app once:** iOS doesn't let keyboards use the microphone. The first tap opens BensVoice, which turns the mic on, and you tap **◀** in the top-left corner to go back. The app keeps the mic session running in the background (orange dot, and a Live Activity in the Dynamic Island) for 5 minutes to 4 hours after you last use it, so later taps work straight from the keyboard. The keyboard and app talk through an App Group and Darwin notifications.
+
+### Setup
+
+1. Install **Xcode** from the Mac App Store and open it once to add the iOS platform.
+2. Generate the Xcode project with [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen && cd iOS && xcodegen generate`. Run it again whenever you change `iOS/project.yml`.
+3. In `iOS/project.yml`, set `DEVELOPMENT_TEAM` to your team ID and change the `com.benlaval` bundle IDs and the App Group (`group.com.benlaval.bensvoice`, also in `Shared/Bridge.swift`) to your own.
+4. Open `iOS/BensVoice.xcodeproj`, plug in your iPhone, select it and press ⌘R. Turn on **Developer Mode** on the phone if asked (Settings › Privacy & Security).
+5. In the app: download the speech model (450 MB), allow the microphone, and paste an Anthropic API key for Compose.
+6. Tap **Turn on the keyboard**, then Keyboards › turn on **BensVoice** and **Allow Full Access** (needed for the keyboard to reach the app; BensVoice doesn't send what you type anywhere).
+
+With a free Apple ID the app stops opening after 7 days until you run it from Xcode again. A paid developer account ($99/year) makes that a year.
 
 ## Credits
 

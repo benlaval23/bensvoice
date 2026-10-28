@@ -1,0 +1,93 @@
+name: BensVoice
+options:
+  bundleIdPrefix: com.benlaval
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: SXV6LFMPV7
+    CODE_SIGN_STYLE: Automatic
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  BensVoice:
+    type: application
+    platform: iOS
+    sources:
+      - BensVoice
+      - Shared
+      # Shared with the Mac app
+      - path: ../Sources/BensVoice/Parakeet.swift
+        group: Shared
+      - path: ../Sources/BensVoice/Recorder.swift
+        group: Shared
+      - path: ../Sources/BensVoice/Composer.swift
+        group: Shared
+    dependencies:
+      - target: BensVoiceWidget
+      - target: BensVoiceKeyboard
+    entitlements:
+      path: BensVoice/BensVoice.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.benlaval.bensvoice]
+    info:
+      path: BensVoice/Info.plist
+      properties:
+        CFBundleDisplayName: BensVoice
+        CFBundleURLTypes:
+          - CFBundleURLName: com.benlaval.bensvoice
+            CFBundleURLSchemes: [bensvoice]
+        NSMicrophoneUsageDescription: BensVoice records only between your taps on Dictate or Compose in the BensVoice keyboard.
+        NSSupportsLiveActivities: true
+        UIBackgroundModes: [audio]
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.benlaval.bensvoice
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) APP
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  BensVoiceWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Widget
+      - path: Shared/VoiceActivity.swift
+        group: Shared
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: BensVoice
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.benlaval.bensvoice.widget
+  BensVoiceKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Keyboard
+      - path: Shared/Bridge.swift
+        group: Shared
+    entitlements:
+      path: Keyboard/Keyboard.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.benlaval.bensvoice]
+    info:
+      path: Keyboard/Info.plist
+      properties:
+        CFBundleDisplayName: BensVoice
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).KeyboardViewController
+          NSExtensionAttributes:
+            IsASCIICapable: false
+            PrefersRightToLeft: false
+            PrimaryLanguage: en-US
+            RequestsOpenAccess: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.benlaval.bensvoice.keyboard

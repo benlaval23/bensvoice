@@ -15,6 +15,7 @@ enum Composer {
     - Keep it as short as the request allows. Never invent facts the user did not give.
     """
 
+    #if os(macOS)
     struct Config: Decodable {
         var anthropicApiKey: String?
         var model: String?
@@ -46,8 +47,9 @@ enum Composer {
         }
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
     }
+    #endif
 
-    private static func viaAPI(prompt: String, key: String, model: String) throws -> String {
+    static func viaAPI(prompt: String, key: String, model: String) throws -> String {
         var req = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!, timeoutInterval: 30)
         req.httpMethod = "POST"
         req.setValue(key, forHTTPHeaderField: "x-api-key")
@@ -78,6 +80,7 @@ enum Composer {
         return try output.get()
     }
 
+    #if os(macOS)
     private static func viaCLI(prompt: String, model: String) throws -> String {
         guard let claude = findClaude() else { throw fail("Couldn't find the `claude` CLI") }
         let p = Process()
@@ -111,6 +114,7 @@ enum Composer {
         return ["\(home)/.local/bin/claude", "\(home)/.claude/local/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
             .first { FileManager.default.isExecutableFile(atPath: $0) }
     }
+    #endif
 
     private static func fail(_ msg: String) -> NSError {
         NSError(domain: "BensVoice", code: 2, userInfo: [NSLocalizedDescriptionKey: msg])

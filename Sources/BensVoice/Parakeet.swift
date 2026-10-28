@@ -3,12 +3,14 @@ import Foundation
 
 /// Minimal Parakeet TDT greedy decoder over the CoreML models FluidVoice/FluidAudio downloads.
 final class Parakeet {
+    #if os(macOS)
     static let defaultModelDir = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v2-coreml")
 
     static var configuredModelDir: URL {
         Composer.loadConfig().modelDir.map { URL(fileURLWithPath: NSString(string: $0).expandingTildeInPath) } ?? defaultModelDir
     }
+    #endif
 
     private let sampleRate = 16_000
     private let windowSamples = 240_000 // 15 s, fixed by the models
@@ -22,7 +24,7 @@ final class Parakeet {
     private let joint: MLModel
     private let vocab: [Int: String]
 
-    init(modelDir: URL = Parakeet.defaultModelDir) throws {
+    init(modelDir: URL) throws {
         let config = MLModelConfiguration()
         config.computeUnits = .cpuAndNeuralEngine
         func load(_ name: String) throws -> MLModel {

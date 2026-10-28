@@ -1,14 +1,16 @@
 import AVFoundation
 
 /// Captures the default mic as 16 kHz mono Float32. The engine only runs while recording.
+/// On iPhone the engine stays running for a whole session and only keeps audio between beginCapture and endCapture.
 final class Recorder {
     private let engine = AVAudioEngine()
     private let lock = NSLock()
     private var samples: [Float] = []
+    private var capturing = true
     private let target = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
 
-    func start() throws {
-        lock.lock(); samples.removeAll(keepingCapacity: true); lock.unlock()
+    func start(capturing: Bool = true) throws {
+        lock.lock(); samples.removeAll(keepingCapacity: true); self.capturing = capturing; lock.unlock()
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
         guard let converter = AVAudioConverter(from: format, to: target) else {
@@ -27,13 +29,26 @@ final class Recorder {
             }
             guard let ch = out.floatChannelData?[0] else { return }
             self.lock.lock()
-            self.samples.append(contentsOf: UnsafeBufferPointer(start: ch, count: Int(out.frameLength)))
+            if self.capturing { self.samples.append(contentsOf: UnsafeBufferPointer(start: ch, count: Int(out.frameLength))) }
             self.lock.unlock()
         }
         engine.prepare()
         try engine.start()
     }
 
+    func beginCapture() {
+        lock.lock(); samples.removeAll(keepingCapacity: true); capturing = true; lock.unlock()
+    }
+
+    func endCapture() -> [Float] {
+        lock.lock(); defer { lock.unlock() }
+        capturing = false
+        let result = samples
+        samples = []
+        return result
+    }
+
+    @discardableResult
     func stop() -> [Float] {
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
